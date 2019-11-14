@@ -33,8 +33,8 @@ func getMessage(repoName string, pusher string) saurontypes.AngmarMessage {
 		Pusher:  pusher,
 		Project: repoName,
 		Tasks: []saurontypes.Task{
-			{Queue: "test", ImageName: "orc_sample"},
-			{Queue: "lint", ImageName: "orc_sample"},
+			{Queue: "test", ImageName: "mocha"},
+			{Queue: "lint", ImageName: "eslint"},
 		},
 	}
 	return msg
