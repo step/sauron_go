@@ -12,7 +12,7 @@ import (
 	"github.com/step/saurontypes"
 
 	"github.com/step/angmar/pkg/queueclient"
-	"github.com/step/sauron/pkg/sauron"
+	"github.com/step/sauron_go/pkg/sauron"
 )
 
 func TestSauron(t *testing.T) {
@@ -54,7 +54,8 @@ func TestSauron(t *testing.T) {
 		SHA:     "cc08dafb86c16562a8b876d195a31cd6d99feae9",
 		Url:     "https://api.github.com/repos/craftybones/sample-assignment/tarball/refs/heads/master",
 		Tasks: []saurontypes.Task{
-			{Queue: "test", ImageName: "orc_sample"},
+			{Queue: "test", ImageName: "mocha"},
+			{Queue: "lint", ImageName: "eslint"},
 		},
 	}
 	expected, err := json.Marshal(expectedAngmarMessage)

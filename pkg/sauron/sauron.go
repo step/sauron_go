@@ -31,10 +31,10 @@ type Payload struct {
 }
 
 func (payload *Payload) getArchiveUrl(format string) string {
-	archiveUrl := payload.Repository.Archive_url
-	archiveUrl = strings.Replace(archiveUrl, "{archive_format}", "tarball/", 1)
-	archiveUrl = strings.Replace(archiveUrl, "{/ref}", payload.Ref, 1)
-	return archiveUrl
+	archiveURL := payload.Repository.Archive_url
+	archiveURL = strings.Replace(archiveURL, "{archive_format}", "tarball/", 1)
+	archiveURL = strings.Replace(archiveURL, "{/ref}", payload.Ref, 1)
+	return archiveURL
 }
 
 type Sauron struct {
@@ -67,6 +67,22 @@ func getJSON(body string) Payload {
 	return *payload
 }
 
+func getMessage(body []byte) saurontypes.AngmarMessage{
+	message := getJSON(string(body))
+	archiveURL := message.getArchiveUrl("tarball")
+	angmarMessage := saurontypes.AngmarMessage{
+		Url:     archiveURL,
+		SHA:     message.After,
+		Pusher:  message.Pusher.Name,
+		Project: message.Repository.Name,
+		Tasks: []saurontypes.Task{
+			{Queue: "test", ImageName: "mocha"},
+			{Queue: "lint", ImageName: "eslint"},
+		},
+	}
+	return angmarMessage
+}
+
 func (s Sauron) Listener() func(http.ResponseWriter, *http.Request) {
 	return func(resp http.ResponseWriter, r *http.Request) {
 		responseStatusCode := http.StatusOK
@@ -74,22 +90,15 @@ func (s Sauron) Listener() func(http.ResponseWriter, *http.Request) {
 		body, _ := ioutil.ReadAll(r.Body)
 		defer r.Body.Close()
 		if isFromGithub(s.GithubSecret, signature, body) {
-			message := getJSON(string(body))
-			archiveUrl := message.getArchiveUrl("tarball")
-			angmarMessage := saurontypes.AngmarMessage{
-				Url:     archiveUrl,
-				SHA:     message.After,
-				Pusher:  message.Pusher.Name,
-				Project: message.Repository.Name,
-				Tasks: []saurontypes.Task{
-					{Queue: "test", ImageName: "orc_sample"},
-				},
-			}
-			angmarMessageJson, err := json.Marshal(angmarMessage)
+			angmarMessage := getMessage(body)
+			angmarMessageJSON, err := json.Marshal(angmarMessage)
+
 			if err != nil {
 				fmt.Printf("Error: %s\n", err)
 			}
-			err = s.QueueClient.Enqueue(s.Queue, string(angmarMessageJson))
+
+			err = s.QueueClient.Enqueue(s.Queue, string(angmarMessageJSON))
+
 			if err != nil {
 				fmt.Printf("Error: %s\n", err.Error())
 			}
