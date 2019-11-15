@@ -1,0 +1,23 @@
+  - Decide a sauron message as discussed
+  - Environment vars should be empty for now
+  Sauron Message should have
+    - (Refer Image)
+
+  Uruk Message should have
+    - Image Name
+    - Repo Location
+    - Data Path
+    - Publish queues
+    - Image env vars
+
+  - Decide on summary json
+
+  - Dockerise Angmar
+  - Create shared volume
+ 
+  - Spike on redis streams
+    - Publish one event
+    - Have multiple subscribers to listen to that event
+    - Do some stuff by listening to that event
+    - Read latest messages from the last read
+    - Check if we need to store the last read Id
