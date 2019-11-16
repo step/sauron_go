@@ -3,7 +3,6 @@ package sauron_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -47,7 +46,6 @@ func TestSauron(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to dequeue from angmar %s\n", err.Error())
 	}
-	fmt.Println(message)
 	expectedAngmarMessage := saurontypes.AngmarMessage{
 		Project: "sample-assignment",
 		Pusher:  "craftybones",

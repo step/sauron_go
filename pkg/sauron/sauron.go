@@ -10,7 +10,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"github.com/step/angmar/pkg/queueclient"
+	"github.com/step/sauron_go/pkg/parser"
 	"github.com/step/saurontypes"
 )
 
@@ -63,22 +66,26 @@ func getJSON(body string) Payload {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(payload)
 	return *payload
 }
 
-func getMessage(body []byte) saurontypes.AngmarMessage{
+func getMessage(body []byte, sauronConfig saurontypes.SauronConfig) saurontypes.AngmarMessage {
 	message := getJSON(string(body))
 	archiveURL := message.getArchiveUrl("tarball")
+	var tasks []saurontypes.Task
+
+	for _, assignment := range sauronConfig.Assignments {
+		assignmentName := strings.Split(message.Repository.Name, "-")[0]
+		if assignment.Name == assignmentName {
+			tasks = assignment.Tasks
+		}
+	}
 	angmarMessage := saurontypes.AngmarMessage{
 		Url:     archiveURL,
 		SHA:     message.After,
 		Pusher:  message.Pusher.Name,
 		Project: message.Repository.Name,
-		Tasks: []saurontypes.Task{
-			{Queue: "test", ImageName: "mocha"},
-			{Queue: "lint", ImageName: "eslint"},
-		},
+		Tasks:   tasks,
 	}
 	return angmarMessage
 }
@@ -89,8 +96,20 @@ func (s Sauron) Listener() func(http.ResponseWriter, *http.Request) {
 		signature := r.Header.Get("X-Hub-Signature")[5:]
 		body, _ := ioutil.ReadAll(r.Body)
 		defer r.Body.Close()
+
+		viperInst := viper.New()
+		viperInst.SetConfigName("config")
+		viperInst.AddConfigPath(".")
+		err := viperInst.ReadInConfig()
+
+		if err != nil {
+			fmt.Println("something happened")
+		}
+
+		sauronConfig := parser.ParseConfig(*viperInst)
+
 		if isFromGithub(s.GithubSecret, signature, body) {
-			angmarMessage := getMessage(body)
+			angmarMessage := getMessage(body, sauronConfig)
 			angmarMessageJSON, err := json.Marshal(angmarMessage)
 
 			if err != nil {

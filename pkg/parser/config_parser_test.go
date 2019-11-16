@@ -1,22 +1,57 @@
 package parser_test
 
 import (
+	"bytes"
 	"testing"
 	"reflect"
 
-	"github.com/step/sauron_go/pkg/parser"
 	"github.com/step/saurontypes"
+
+	"github.com/spf13/viper"
+	"github.com/step/sauron_go/pkg/parser"
 )
 
 func TestGetTasks(t *testing.T) {
-	actual := parser.GetTasks("gol")
-	
-	expected := []saurontypes.Task{
-		{Queue: "test", ImageName: "mocha"},
-		{Queue: "lint", ImageName: "eslint"},
+
+	viperInst := viper.New()
+	viperInst.SetConfigType("toml")
+
+	var sampleConfig = []byte(
+		`[[assignments]]
+			name = "gol"
+			description = "something"
+			prefix = "gol-"
+
+				[[assignments.tasks]]
+				name = "test"
+				queue = "test"
+				image = "steptw/test"
+				data = "/github/somewhere"`,
+	)
+
+	expectedSauronConfig := saurontypes.SauronConfig{
+		Assignments: []saurontypes.Assignment{
+			{
+				Description: "something",
+				Prefix: "gol-",
+				Name:"gol",
+				Tasks: []saurontypes.Task{
+					{
+						Queue:"test",
+						ImageName:"steptw/test",
+						Name:"test",
+						Data:"/github/somewhere",
+					},
+				},
+			},
+		},
 	}
 
-	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("\nactual => %s\nexpected => %s", actual, expected)
+	viperInst.ReadConfig(bytes.NewBuffer(sampleConfig))
+
+	sauronConfig := parser.ParseConfig(*viperInst)
+
+	if !reflect.DeepEqual(sauronConfig, expectedSauronConfig){
+		t.Errorf("\n actual => %s \n expected => %s\n", sauronConfig, expectedSauronConfig)
 	}
 }

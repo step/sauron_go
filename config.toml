@@ -1,17 +1,33 @@
-[assignments]
-  [assignments.gol]
-    description="this is to make a game of life"
-    strategy="prefix"
-    match_value="gol"
+[[assignments]]
+name = "git"
+description = "something"
+prefix = "git-"
 
-    [[assignments.gol.tasks]]
-      job_name="test"
-      queue_name="test"
-      image_name="mocha"
-      data_path="/tmp/tests"
-    
-    [[assignments.gol.tasks]]
-      job_name="lint"
-      queue_name="lint"
-      image_name="eslint"
-      data_path="/tmp/lint"
+  [[assignments.tasks]]
+  name = "test"
+  queue = "test"
+  image = "mocha"
+  data = "/github/somewhere"
+
+  [[assignments.tasks]]
+  name = "lint"
+  queue = "lint"
+  image = "eslint"
+  data = "/github/somewhere_else"
+
+[[assignments]]
+name = "wc"
+description = "something"
+prefix = "wc-"
+
+  [[assignments.tasks]]
+  name = "test"
+  queue = "test"
+  image = "steptw/test"
+  data = "/github/somewhere"
+
+  [[assignments.tasks]]
+  name = "lint"
+  queue = "lint"
+  image = "steptw/eslint"
+  data = "/github/somewhere_else"
