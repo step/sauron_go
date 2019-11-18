@@ -1,6 +1,8 @@
 package sauron_test
 
 import (
+	"log"
+	"github.com/spf13/viper"
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
@@ -22,9 +24,34 @@ func TestSauron(t *testing.T) {
 
 	reader := bytes.NewReader(content)
 
+	viperInst := viper.New()
+	viperInst.SetConfigType("toml")
+
+	var sampleConfig = []byte(
+		`[[assignments]]
+			name = "sample"
+			description = "something"
+			prefix = "sample-"
+
+				[[assignments.tasks]]
+				name = "test"
+				queue = "test"
+				image = "mocha"
+				data = "/github/somewhere"
+				
+				[[assignments.tasks]]
+				name = "lint"
+				queue = "lint"
+				image = "eslint"
+				data = "/github/somewhere"`,
+	)
+	viperInst.ReadConfig(bytes.NewBuffer(sampleConfig))
+
+	logger := sauron.SauronLogger{Logger: log.New(ioutil.Discard, "", log.LstdFlags)}
+
 	q := queueclient.NewDefaultClient()
-	s := sauron.Sauron{"angmar", q, "test"}
-	l := s.Listener()
+	s := sauron.Sauron{"angmar", q, "test", logger}
+	l := s.Listener(viperInst)
 
 	sauronServer := httptest.NewServer(http.HandlerFunc(l))
 	request, err := http.NewRequest("POST", sauronServer.URL, reader)
@@ -52,8 +79,8 @@ func TestSauron(t *testing.T) {
 		SHA:     "cc08dafb86c16562a8b876d195a31cd6d99feae9",
 		Url:     "https://api.github.com/repos/craftybones/sample-assignment/tarball/refs/heads/master",
 		Tasks: []saurontypes.Task{
-			{Queue: "test", ImageName: "mocha"},
-			{Queue: "lint", ImageName: "eslint"},
+			{Queue: "test", ImageName: "mocha", Name:"test", Data:"/github/somewhere"},
+			{Queue: "lint", ImageName: "eslint", Name:"lint", Data:"/github/somewhere"},
 		},
 	}
 	expected, err := json.Marshal(expectedAngmarMessage)
