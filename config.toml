@@ -1,0 +1,33 @@
+[[assignments]]
+name = "git"
+description = "something"
+prefix = "git-"
+
+  [[assignments.tasks]]
+  name = "test"
+  queue = "test"
+  image = "mocha"
+  data = "/tmp/angmar/log/angmar.log"
+
+  [[assignments.tasks]]
+  name = "lint"
+  queue = "lint"
+  image = "eslint"
+  data = "/github/somewhere_else"
+
+[[assignments]]
+name = "wc"
+description = "something"
+prefix = "wc-"
+
+  [[assignments.tasks]]
+  name = "test"
+  queue = "test"
+  image = "mocha"
+  data = "/tmp/wc-tests"
+
+  [[assignments.tasks]]
+  name = "lint"
+  queue = "lint"
+  image = "steptw/eslint"
+  data = "/github/somewhere_else"
