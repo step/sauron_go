@@ -16,15 +16,21 @@ import (
 	"github.com/step/saurontypes"
 )
 
+// Repo is a custom type which will contain the ArchiveURL
+// and the Name of the Repo
 type Repo struct {
-	Archive_url string `json:archive_url`
-	Name        string `json:name`
+	ArchiveURL string `json:"archive_url"`
+	Name       string `json:"name"`
 }
 
+// Pusher is a custom type which will contain the Name
+// of the Pusher
 type Pusher struct {
 	Name string `json:"name"`
 }
 
+// Payload is a custom type which will contain the SHA,
+// Timestamp and Repository and Pusher
 type Payload struct {
 	Ref        string `json:"ref"`
 	After      string `json:"after"`
@@ -32,13 +38,16 @@ type Payload struct {
 	Pusher     Pusher
 }
 
-func (payload *Payload) getArchiveUrl(format string) string {
-	archiveURL := payload.Repository.Archive_url
+func (payload *Payload) getArchiveURL(format string) string {
+	archiveURL := payload.Repository.ArchiveURL
 	archiveURL = strings.Replace(archiveURL, "{archive_format}", "tarball/", 1)
 	archiveURL = strings.Replace(archiveURL, "{/ref}", payload.Ref, 1)
 	return archiveURL
 }
 
+// Sauron is server which listens and responds to payload
+// sent from github. And also parses the payload to make
+// AngmarMessage and places on queue
 type Sauron struct {
 	Queue        string
 	QueueClient  queueclient.QueueClient
@@ -52,6 +61,7 @@ func (s Sauron) String() string {
 	return builder.String()
 }
 
+// VerifyMessage is to verify the message if it is from github
 func VerifyMessage(message, key string, actualDigest []byte) bool {
 	mac := hmac.New(sha1.New, []byte(key))
 	mac.Write([]byte(message))
@@ -70,13 +80,13 @@ func (s Sauron) getJSON(body string) Payload {
 	decoder := json.NewDecoder(bodyReader)
 	err := decoder.Decode(payload)
 	if err != nil {
-		s.Logger.JsonDecodingError(err)
+		s.Logger.JSONDecodingError(err)
 	}
 	return *payload
 }
 
 func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfig) saurontypes.AngmarMessage {
-	archiveURL := message.getArchiveUrl("tarball")
+	archiveURL := message.getArchiveURL("tarball")
 	var tasks []saurontypes.Task
 
 	for _, assignment := range sauronConfig.Assignments {
@@ -87,7 +97,7 @@ func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfi
 		}
 	}
 	angmarMessage := saurontypes.AngmarMessage{
-		Url:     archiveURL,
+		URL:     archiveURL,
 		SHA:     message.After,
 		Pusher:  message.Pusher.Name,
 		Project: message.Repository.Name,
@@ -96,6 +106,8 @@ func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfi
 	return angmarMessage
 }
 
+// Listener takes a viper instance to parse the config file
+// and returns a listener for sauron
 func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http.Request) {
 	s.Logger.StartSauron(s)
 	return func(resp http.ResponseWriter, r *http.Request) {
@@ -117,7 +129,7 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 			}
 
 			err = s.QueueClient.Enqueue(s.Queue, string(angmarMessageJSON))
-			
+
 			if err != nil {
 				s.Logger.EnqueueError(err)
 			}

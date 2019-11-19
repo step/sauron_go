@@ -7,7 +7,7 @@ prefix = "git-"
   name = "test"
   queue = "test"
   image = "mocha"
-  data = "/github/somewhere"
+  data = "/tmp/angmar/log/angmar.log"
 
   [[assignments.tasks]]
   name = "lint"
@@ -23,8 +23,8 @@ prefix = "wc-"
   [[assignments.tasks]]
   name = "test"
   queue = "test"
-  image = "steptw/test"
-  data = "/github/somewhere"
+  image = "mocha"
+  data = "/tmp/wc-tests"
 
   [[assignments.tasks]]
   name = "lint"

@@ -23,9 +23,7 @@ func getLogfileName() string {
 func getLogfile() *os.File {
 	file, err := os.OpenFile(getLogfileName(), os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
-		fmt.Println("here before")
 		fmt.Println(err)
-		fmt.Println("here")
 		os.Exit(1)
 	}
 	return file

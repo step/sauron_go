@@ -77,7 +77,7 @@ func TestSauron(t *testing.T) {
 		Project: "sample-assignment",
 		Pusher:  "craftybones",
 		SHA:     "cc08dafb86c16562a8b876d195a31cd6d99feae9",
-		Url:     "https://api.github.com/repos/craftybones/sample-assignment/tarball/refs/heads/master",
+		URL:     "https://api.github.com/repos/craftybones/sample-assignment/tarball/refs/heads/master",
 		Tasks: []saurontypes.Task{
 			{Queue: "test", ImageName: "mocha", Name:"test", Data:"/github/somewhere"},
 			{Queue: "lint", ImageName: "eslint", Name:"lint", Data:"/github/somewhere"},
