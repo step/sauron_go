@@ -1,9 +1,9 @@
-package flowIDGenerator_test
+package flowidgenerator_test
 
 import (
 	"testing"
 	
-	f "github.com/step/sauron_go/pkg/flowIDGenerator"
+	f "github.com/step/sauron_go/pkg/flowidgenerator"
 )
 
 func TestDefaultIDGenerator(t *testing.T)  {

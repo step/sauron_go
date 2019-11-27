@@ -16,6 +16,7 @@ func init() {
 	flag.StringVar(&redisPassword, "redis-password", "", "`password` for Redis host")
 }
 
+// GetRedisClient should be called to make a redisClient
 func GetRedisClient() redisclient.RedisClient {
 	redisConf := redisclient.RedisConf{
 		Address:  redisAddress,

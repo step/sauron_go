@@ -5,14 +5,14 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/step/sauron_go/pkg/flowIDGenerator"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/spf13/viper"
-
+	
+	"github.com/step/sauron_go/pkg/flowidgenerator"
 	"github.com/step/angmar/pkg/queueclient"
 	"github.com/step/sauron_go/pkg/parser"
 	"github.com/step/saurontypes"
@@ -55,7 +55,7 @@ type Sauron struct {
 	Queue           string
 	QueueClient     queueclient.QueueClient
 	StreamClient    streamClient.StreamClient
-	FlowIDGenerator flowIDGenerator.FlowIDGenerator
+	Flowidgenerator flowidgenerator.FlowIDGenerator
 	GithubSecret    string
 	Logger          SauronLogger
 }
@@ -127,7 +127,7 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 		if isFromGithub(s.GithubSecret, signature, body) {
 			message := s.getJSON(string(body))
 			s.Logger.ReceivedMessage(message)
-			flowID := s.FlowIDGenerator.New()
+			flowID := s.Flowidgenerator.New()
 
 			startEvent := saurontypes.Event{
 				Source:    "sauron",

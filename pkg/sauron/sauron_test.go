@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/spf13/viper"
-	"github.com/step/sauron_go/pkg/flowIDGenerator"
+	"github.com/step/sauron_go/pkg/flowidgenerator"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -52,7 +52,7 @@ func TestSauron(t *testing.T) {
 
 	q := queueclient.NewDefaultClient()
 	st := streamClient.NewDefaultClient()
-	fig := flowIDGenerator.NewDefaultFlowIDGenerator()
+	fig := flowidgenerator.NewDefaultFlowIDGenerator()
 	s := sauron.Sauron{"angmar", q, st, fig, "test", logger}
 	l := s.Listener(viperInst)
 

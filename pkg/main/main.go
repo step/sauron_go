@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/step/sauron_go/pkg/flowIDGenerator"
+	"github.com/step/sauron_go/pkg/flowidgenerator"
 	"net/http"
 
 	"github.com/spf13/viper"
@@ -24,12 +24,12 @@ func main() {
 
 	logger := getLogger(file)
 	redisClient := GetRedisClient()
-	uuidGenerator := flowIDGenerator.NewUUIDGenerator()
+	uuidGenerator := flowidgenerator.NewUUIDGenerator()
 	sauron := sauron.Sauron{
 		Queue:           "angmar",
 		QueueClient:     redisClient,
 		StreamClient:    redisClient,
-		FlowIDGenerator: uuidGenerator,
+		Flowidgenerator: uuidGenerator,
 		GithubSecret:    "test",
 		Logger:          logger,
 	}
