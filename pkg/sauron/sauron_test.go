@@ -53,7 +53,7 @@ func TestSauron(t *testing.T) {
 	q := queueclient.NewDefaultClient()
 	st := streamClient.NewDefaultClient()
 	fig := flowidgenerator.NewDefaultFlowIDGenerator()
-	s := sauron.Sauron{"angmar", q, st, fig, "test", logger}
+	s := sauron.Sauron{"angmar", q, "testStream", st, fig, "test", logger}
 	l := s.Listener(viperInst)
 
 	sauronServer := httptest.NewServer(http.HandlerFunc(l))
@@ -80,6 +80,7 @@ func TestSauron(t *testing.T) {
 		Project: "sample-assignment",
 		Pusher:  "craftybones",
 		FlowID:  "ABCD",
+		Stream: "testStream",
 		SHA:     "cc08dafb86c16562a8b876d195a31cd6d99feae9",
 		URL:     "https://api.github.com/repos/craftybones/sample-assignment/tarball/refs/heads/master",
 		Tasks: []saurontypes.Task{

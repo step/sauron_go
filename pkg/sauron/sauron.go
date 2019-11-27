@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	
-	"github.com/step/sauron_go/pkg/flowidgenerator"
+
 	"github.com/step/angmar/pkg/queueclient"
+	"github.com/step/sauron_go/pkg/flowidgenerator"
 	"github.com/step/sauron_go/pkg/parser"
 	"github.com/step/saurontypes"
 	"github.com/step/uruk/pkg/streamClient"
@@ -54,6 +54,7 @@ func (payload *Payload) getArchiveURL(format string) string {
 type Sauron struct {
 	Queue           string
 	QueueClient     queueclient.QueueClient
+	Stream          string
 	StreamClient    streamClient.StreamClient
 	Flowidgenerator flowidgenerator.FlowIDGenerator
 	GithubSecret    string
@@ -104,6 +105,7 @@ func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfi
 	angmarMessage := saurontypes.AngmarMessage{
 		URL:     archiveURL,
 		FlowID:  flowID,
+		Stream:  s.Stream,
 		SHA:     message.After,
 		Pusher:  message.Pusher.Name,
 		Project: message.Repository.Name,
@@ -137,7 +139,7 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 				Timestamp: time.Now().String(),
 				PusherID:  "luciferankon",
 			}
-			s.StreamClient.Add("eventHub", startEvent.ConvertToEntry())
+			s.StreamClient.Add(s.Stream, startEvent.ConvertToEntry())
 
 			angmarMessage := s.getMessage(message, sauronConfig, flowID)
 			angmarMessageJSON, err := json.Marshal(angmarMessage)
