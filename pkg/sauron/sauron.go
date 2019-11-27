@@ -5,15 +5,18 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/step/sauron_go/pkg/flowIDGenerator"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 
 	"github.com/step/angmar/pkg/queueclient"
 	"github.com/step/sauron_go/pkg/parser"
 	"github.com/step/saurontypes"
+	"github.com/step/uruk/pkg/streamClient"
 )
 
 // Repo is a custom type which will contain the ArchiveURL
@@ -49,10 +52,12 @@ func (payload *Payload) getArchiveURL(format string) string {
 // sent from github. And also parses the payload to make
 // AngmarMessage and places on queue
 type Sauron struct {
-	Queue        string
-	QueueClient  queueclient.QueueClient
-	GithubSecret string
-	Logger       SauronLogger
+	Queue           string
+	QueueClient     queueclient.QueueClient
+	StreamClient    streamClient.StreamClient
+	FlowIDGenerator flowIDGenerator.FlowIDGenerator
+	GithubSecret    string
+	Logger          SauronLogger
 }
 
 func (s Sauron) String() string {
@@ -85,7 +90,7 @@ func (s Sauron) getJSON(body string) Payload {
 	return *payload
 }
 
-func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfig) saurontypes.AngmarMessage {
+func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfig, flowID string) saurontypes.AngmarMessage {
 	archiveURL := message.getArchiveURL("tarball")
 	var tasks []saurontypes.Task
 
@@ -98,6 +103,7 @@ func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfi
 	}
 	angmarMessage := saurontypes.AngmarMessage{
 		URL:     archiveURL,
+		FlowID:  flowID,
 		SHA:     message.After,
 		Pusher:  message.Pusher.Name,
 		Project: message.Repository.Name,
@@ -121,7 +127,19 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 		if isFromGithub(s.GithubSecret, signature, body) {
 			message := s.getJSON(string(body))
 			s.Logger.ReceivedMessage(message)
-			angmarMessage := s.getMessage(message, sauronConfig)
+			flowID := s.FlowIDGenerator.New()
+
+			startEvent := saurontypes.Event{
+				Source:    "sauron",
+				Type:      "starting sauron",
+				FlowID:    flowID,
+				EventID:   1,
+				Timestamp: time.Now().String(),
+				PusherID:  "luciferankon",
+			}
+			s.StreamClient.Add("eventHub", startEvent.ConvertToEntry())
+
+			angmarMessage := s.getMessage(message, sauronConfig, flowID)
 			angmarMessageJSON, err := json.Marshal(angmarMessage)
 
 			if err != nil {
