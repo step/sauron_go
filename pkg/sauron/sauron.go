@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -94,21 +95,34 @@ func (s Sauron) getJSON(body string) Payload {
 func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfig, flowID string) saurontypes.AngmarMessage {
 	archiveURL := message.getArchiveURL("tarball")
 	var tasks []saurontypes.Task
+	var project string
 
 	for _, assignment := range sauronConfig.Assignments {
 		assignmentName := strings.Split(message.Repository.Name, "-")[0]
 		if assignment.Name == assignmentName {
 			tasks = assignment.Tasks
+			project = assignment.Name
 			break
 		}
 	}
+	associationEvent := saurontypes.Event{
+		Source:    "sauron",
+		Type:      "association",
+		FlowID:    flowID,
+		Timestamp: time.Now().String(),
+		PusherID:  message.Pusher.Name,
+		Project:   project,
+		Details:   "This is a association of flowID to pusherID",
+	}
+	s.StreamClient.Add(s.Stream, associationEvent.ConvertToEntry())
+
 	angmarMessage := saurontypes.AngmarMessage{
 		URL:     archiveURL,
 		FlowID:  flowID,
 		Stream:  s.Stream,
 		SHA:     message.After,
 		Pusher:  message.Pusher.Name,
-		Project: message.Repository.Name,
+		Project: project,
 		Tasks:   tasks,
 	}
 	return angmarMessage
@@ -131,15 +145,16 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 			s.Logger.ReceivedMessage(message)
 			flowID := s.Flowidgenerator.New()
 
-			startEvent := saurontypes.Event{
+			receiveMessageEvent := saurontypes.Event{
 				Source:    "sauron",
-				Type:      "starting sauron",
+				Type:      "receive_message",
 				FlowID:    flowID,
-				EventID:   1,
 				Timestamp: time.Now().String(),
-				PusherID:  "luciferankon",
+				PusherID:  message.Pusher.Name,
+				Project:   strings.Split(message.Repository.Name, "-")[0],
+				Details:   "Payload received from GitHub",
 			}
-			s.StreamClient.Add(s.Stream, startEvent.ConvertToEntry())
+			s.StreamClient.Add(s.Stream, receiveMessageEvent.ConvertToEntry())
 
 			angmarMessage := s.getMessage(message, sauronConfig, flowID)
 			angmarMessageJSON, err := json.Marshal(angmarMessage)
@@ -148,15 +163,36 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 				s.Logger.AngmarMessageMarshalingError(err)
 			}
 
+			generateMessageEvent := saurontypes.Event{
+				Source:    "sauron",
+				Type:      "generate_message",
+				FlowID:    flowID,
+				Timestamp: time.Now().String(),
+				PusherID:  message.Pusher.Name,
+				Project:   strings.Split(message.Repository.Name, "-")[0],
+				Details:   angmarMessage.String(),
+			}
+			s.StreamClient.Add(s.Stream, generateMessageEvent.ConvertToEntry())
 			err = s.QueueClient.Enqueue(s.Queue, string(angmarMessageJSON))
 
 			if err != nil {
 				s.Logger.EnqueueError(err)
 			}
+
+			s.Logger.TaskPlacedOnQueue(s)
+			placeTaskEvent := saurontypes.Event{
+				Source:    "sauron",
+				Type:      "place_task",
+				FlowID:    flowID,
+				Timestamp: time.Now().String(),
+				PusherID:  message.Pusher.Name,
+				Project: strings.Split(message.Repository.Name, "-")[0],
+				Details:   fmt.Sprintf("Task placed on queue %s", s.Queue),
+			}
+			s.StreamClient.Add(s.Stream, placeTaskEvent.ConvertToEntry())
 		} else {
 			responseStatusCode = http.StatusForbidden
 		}
-		s.Logger.TaskPlacedOnQueue(s)
 		resp.WriteHeader(responseStatusCode)
 	}
 }
