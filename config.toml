@@ -1,21 +1,4 @@
 [[assignments]]
-name = "git"
-description = "something"
-prefix = "git-"
-
-  [[assignments.tasks]]
-  name = "test"
-  queue = "test"
-  image = "mocha"
-  data = "/tmp/angmar/log/angmar.log"
-
-  [[assignments.tasks]]
-  name = "lint"
-  queue = "lint"
-  image = "eslint"
-  data = "/github/somewhere_else"
-
-[[assignments]]
 name = "wc"
 description = "something"
 prefix = "wc-"
@@ -31,3 +14,26 @@ prefix = "wc-"
   queue = "lint"
   image = "steptw/eslint"
   data = "/github/somewhere_else"
+
+[[assignments]]
+name = "head"
+description = "something"
+prefix = "head-"
+
+  [[assignments.tasks]]
+  name = "test"
+  queue = "test"
+  image = "mocha"
+  data = "/tmp/head_tests"
+
+
+[[assignments]]
+name = "geometry"
+description = "something"
+prefix = "geometry-"
+
+  [[assignments.tasks]]
+  name = "test"
+  queue = "test"
+  image = "mocha"
+  data = "/tmp/test_geometry"
