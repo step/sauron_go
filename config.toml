@@ -26,6 +26,12 @@ prefix = "head-"
   image = "mocha"
   data = "/tmp/head_tests"
 
+  [[assignments.tasks]]
+    name = "lint"
+    queue = "lint"
+    image = "eslint"
+    data = "/tmp/eslint"
+
 
 [[assignments]]
 name = "geometry"
@@ -36,4 +42,10 @@ prefix = "geometry-"
   name = "test"
   queue = "test"
   image = "mocha"
-  data = "/tmp/test_geometry"
+  data = "/Users/ankoncha/Google Drive/test"
+
+  [[assignments.tasks]]
+    name = "lint"
+    queue = "lint"
+    image = "eslint"
+    data = "/tmp/eslint"

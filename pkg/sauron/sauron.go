@@ -109,10 +109,11 @@ func (s Sauron) getMessage(message Payload, sauronConfig saurontypes.SauronConfi
 		Source:    "sauron",
 		Type:      "association",
 		FlowID:    flowID,
-		Timestamp: time.Now().String(),
+		Timestamp: time.Now().Format("2 Jan 2006 15:04:05"),
 		PusherID:  message.Pusher.Name,
 		Project:   project,
 		Details:   "This is a association of flowID to pusherID",
+		SHA:       message.After,
 	}
 	s.StreamClient.Add(s.Stream, associationEvent.ConvertToEntry())
 
@@ -149,10 +150,11 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 				Source:    "sauron",
 				Type:      "receive_message",
 				FlowID:    flowID,
-				Timestamp: time.Now().String(),
+				Timestamp: time.Now().Format("2 Jan 2006 15:04:05"),
 				PusherID:  message.Pusher.Name,
 				Project:   strings.Split(message.Repository.Name, "-")[0],
 				Details:   "Payload received from GitHub",
+				SHA:       message.After,
 			}
 			s.StreamClient.Add(s.Stream, receiveMessageEvent.ConvertToEntry())
 
@@ -167,10 +169,11 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 				Source:    "sauron",
 				Type:      "generate_message",
 				FlowID:    flowID,
-				Timestamp: time.Now().String(),
+				Timestamp: time.Now().Format("2 Jan 2006 15:04:05"),
 				PusherID:  message.Pusher.Name,
 				Project:   strings.Split(message.Repository.Name, "-")[0],
 				Details:   angmarMessage.String(),
+				SHA:       message.After,
 			}
 			s.StreamClient.Add(s.Stream, generateMessageEvent.ConvertToEntry())
 			err = s.QueueClient.Enqueue(s.Queue, string(angmarMessageJSON))
@@ -184,10 +187,11 @@ func (s Sauron) Listener(viperInst *viper.Viper) func(http.ResponseWriter, *http
 				Source:    "sauron",
 				Type:      "place_task",
 				FlowID:    flowID,
-				Timestamp: time.Now().String(),
+				Timestamp: time.Now().Format("2 Jan 2006 15:04:05"),
 				PusherID:  message.Pusher.Name,
-				Project: strings.Split(message.Repository.Name, "-")[0],
+				Project:   strings.Split(message.Repository.Name, "-")[0],
 				Details:   fmt.Sprintf("Task placed on queue %s", s.Queue),
+				SHA:       message.After,
 			}
 			s.StreamClient.Add(s.Stream, placeTaskEvent.ConvertToEntry())
 		} else {
