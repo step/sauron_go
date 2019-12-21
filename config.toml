@@ -23,7 +23,7 @@ prefix = "head-"
   [[assignments.tasks]]
   name = "test"
   queue = "test"
-  image = "mocha"
+  image = "luciferankon/mocha"
   data = "/tmp/head_tests"
 
   [[assignments.tasks]]
